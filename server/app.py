@@ -94,6 +94,31 @@ class MemberOnlyArticle(Resource):
     def get(self, id):
         pass
 
+class MemberOnlyIndex(Resource):
+    def get(self):
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized'}, 401
+
+        articles = [
+            article.to_dict()
+            for article in Article.query.filter_by(is_member_only=True).all()
+        ]
+        return articles, 200
+
+
+class MemberOnlyArticle(Resource):
+    def get(self, id):
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized'}, 401
+
+        article = Article.query.filter_by(
+            id=id,
+            is_member_only=True
+        ).first()
+
+        return article.to_dict(), 200
+
+
 api.add_resource(ClearSession, '/clear', endpoint='clear')
 api.add_resource(IndexArticle, '/articles', endpoint='article_list')
 api.add_resource(ShowArticle, '/articles/<int:id>', endpoint='show_article')
@@ -102,6 +127,8 @@ api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 api.add_resource(MemberOnlyIndex, '/members_only_articles', endpoint='member_index')
 api.add_resource(MemberOnlyArticle, '/members_only_articles/<int:id>', endpoint='member_article')
+api.add_resource(MemberOnlyIndex, '/member_only_articles')
+api.add_resource(MemberOnlyArticle, '/member_only_articles/<int:id>')
 
 
 if __name__ == '__main__':
